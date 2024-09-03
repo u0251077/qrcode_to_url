@@ -1,36 +1,49 @@
 import streamlit as st
 from PIL import Image
+import zbar
 import io
-import cv2
-import numpy as np
 
-def read_qr_code(image):
-    # 将PIL Image转换为OpenCV格式
-    img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    st.write(img_cv.shape())
-    # 初始化QR码检测器
-    qr_detector = cv2.QRCodeDetector()
+def scan_qrcode(image):
+    # 將 PIL 圖片轉換為灰度圖像
+    image = image.convert('L')
     
-    # 检测并解码QR码
-    data, bbox, _ = qr_detector.detectAndDecode(img_cv)
+    # 創建 ZBar 讀取器
+    scanner = zbar.ImageScanner()
+    scanner.parse_config('enable')
     
-    if bbox is not None:
-        return data
-    else:
-        return None
-
-st.title('QR码解析器')
-
-uploaded_file = st.file_uploader("上传包含QR码的图片", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption='上传的图片', use_column_width=True)
+    # 將 PIL 圖片轉換為 ZBar 圖像
+    width, height = image.size
+    raw_image = image.tobytes()
+    zbar_image = zbar.Image(width, height, 'Y800', raw_image)
     
-    if st.button('解析QR码'):
-        url = read_qr_code(image)
-        if url:
-            st.success(f'解析到的URL: {url}')
-            st.markdown(f'[点击这里访问链接]({url})')
+    # 扫描二维码
+    scanner.scan(zbar_image)
+    
+    # 解析结果
+    result = []
+    for symbol in zbar_image:
+        result.append(symbol.data.decode('utf-8'))
+    
+    return result
+
+def main():
+    st.title('QR Code Scanner')
+
+    uploaded_file = st.file_uploader("Choose a file", type=["png", "jpg", "jpeg"])
+    
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file)
+        st.image(image, caption='Uploaded Image', use_column_width=True)
+        
+        with st.spinner('Scanning QR code...'):
+            decoded_text = scan_qrcode(image)
+            
+        if decoded_text:
+            st.subheader("QR Code Data:")
+            for text in decoded_text:
+                st.write(text)
         else:
-            st.error('未能检测到QR码，请确保图片中包含有效的QR码。')
+            st.write("No QR Code detected.")
+
+if __name__ == "__main__":
+    main()
