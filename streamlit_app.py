@@ -1,18 +1,18 @@
 import streamlit as st
 from PIL import Image
-from pyzbar.pyzbar import decode
+import cv2
+import numpy as np
 
 def scan_qrcode(image):
-    # 將 PIL 圖片轉換為灰度圖像
-    image = image.convert('RGB')
+    # 將 PIL 圖片轉換為 OpenCV 圖像格式
+    image = np.array(image)
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     
-    # 解碼 QR 碼
-    decoded_objects = decode(image)
+    # 使用 OpenCV 的 QRCodeDetector 來解碼 QR 碼
+    detector = cv2.QRCodeDetector()
+    retval, decoded_info, points, straight_qrcode = detector(gray)
     
-    # 提取 QR 碼數據
-    result = [obj.data.decode('utf-8') for obj in decoded_objects]
-    
-    return result
+    return decoded_info
 
 def main():
     st.title('QR Code Scanner')
