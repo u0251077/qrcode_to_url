@@ -10,9 +10,9 @@ def scan_qrcode(image):
     
     # 使用 OpenCV 的 QRCodeDetector 來解碼 QR 碼
     detector = cv2.QRCodeDetector()
-    retval, decoded_info, points, straight_qrcode = detector(gray)
+    decoded_text, points, qr_code = detector(gray)
     
-    return decoded_info
+    return decoded_text
 
 def main():
     st.title('QR Code Scanner')
