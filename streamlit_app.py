@@ -1,28 +1,16 @@
 import streamlit as st
 from PIL import Image
-import zbar
-import io
+from pyzbar.pyzbar import decode
 
 def scan_qrcode(image):
     # 將 PIL 圖片轉換為灰度圖像
-    image = image.convert('L')
+    image = image.convert('RGB')
     
-    # 創建 ZBar 讀取器
-    scanner = zbar.ImageScanner()
-    scanner.parse_config('enable')
+    # 解碼 QR 碼
+    decoded_objects = decode(image)
     
-    # 將 PIL 圖片轉換為 ZBar 圖像
-    width, height = image.size
-    raw_image = image.tobytes()
-    zbar_image = zbar.Image(width, height, 'Y800', raw_image)
-    
-    # 扫描二维码
-    scanner.scan(zbar_image)
-    
-    # 解析结果
-    result = []
-    for symbol in zbar_image:
-        result.append(symbol.data.decode('utf-8'))
+    # 提取 QR 碼數據
+    result = [obj.data.decode('utf-8') for obj in decoded_objects]
     
     return result
 
