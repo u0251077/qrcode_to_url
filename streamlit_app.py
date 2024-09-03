@@ -3,18 +3,19 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
-from pyzbar.pyzbar import decode
 
 def read_qr_code(image):
     # 将PIL Image转换为OpenCV格式
     img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     
-    # 使用pyzbar解码QR码
-    decoded_objects = decode(img_cv)
+    # 初始化QR码检测器
+    qr_detector = cv2.QRCodeDetector()
     
-    # 如果检测到QR码
-    if decoded_objects:
-        return decoded_objects[0].data.decode('utf-8')
+    # 检测并解码QR码
+    data, bbox, _ = qr_detector.detectAndDecode(img_cv)
+    
+    if bbox is not None:
+        return data
     else:
         return None
 
@@ -32,4 +33,4 @@ if uploaded_file is not None:
             st.success(f'解析到的URL: {url}')
             st.markdown(f'[点击这里访问链接]({url})')
         else:
-            st.error('未能检测到QR码,请确保图片中包含有效的QR码。')
+            st.error('未能检测到QR码，请确保图片中包含有效的QR码。')
