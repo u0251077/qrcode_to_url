@@ -1,44 +1,35 @@
-
 import streamlit as st
-import numpy as np
 from PIL import Image
-import qrcode
-from io import BytesIO
+import io
+import cv2
+import numpy as np
+from pyzbar.pyzbar import decode
 
-def generate_qr_code(url):
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    return img
-
-st.title('QR码生成器')
-
-url = st.text_input('请输入要生成QR码的URL:')
-
-if url:
-    # 生成QR码
-    qr_image = generate_qr_code(url)
+def read_qr_code(image):
+    # 将PIL Image转换为OpenCV格式
+    img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     
-    # 将PIL图像转换为字节流
-    img_byte_arr = BytesIO()
-    qr_image.save(img_byte_arr, format='PNG')
-    img_byte_arr = img_byte_arr.getvalue()
+    # 使用pyzbar解码QR码
+    decoded_objects = decode(img_cv)
     
-    # 显示生成的QR码
-    st.image(img_byte_arr, caption='生成的QR码', use_column_width=True)
-    
-    # 添加下载按钮
-    st.download_button(
-        label="下载QR码",
-        data=img_byte_arr,
-        file_name="qrcode.png",
-        mime="image/png"
-    )
-    
-    # 显示URL供复制
-    st.text_input('复制URL:', value=url)
-else:
-    st.warning('请输入URL以生成QR码')
+    # 如果检测到QR码
+    if decoded_objects:
+        return decoded_objects[0].data.decode('utf-8')
+    else:
+        return None
 
+st.title('QR码解析器')
 
+uploaded_file = st.file_uploader("上传包含QR码的图片", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption='上传的图片', use_column_width=True)
+    
+    if st.button('解析QR码'):
+        url = read_qr_code(image)
+        if url:
+            st.success(f'解析到的URL: {url}')
+            st.markdown(f'[点击这里访问链接]({url})')
+        else:
+            st.error('未能检测到QR码,请确保图片中包含有效的QR码。')
