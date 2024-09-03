@@ -7,7 +7,7 @@ import numpy as np
 def read_qr_code(image):
     # 将PIL Image转换为OpenCV格式
     img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    
+    st.write(img_cv.shape())
     # 初始化QR码检测器
     qr_detector = cv2.QRCodeDetector()
     
