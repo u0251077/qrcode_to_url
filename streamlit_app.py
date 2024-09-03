@@ -28,8 +28,7 @@ def main():
             
         if decoded_text:
             st.subheader("QR Code Data:")
-            for text in decoded_text:
-                st.write(text)
+            st.write(decoded_text)
         else:
             st.write("No QR Code detected.")
 
