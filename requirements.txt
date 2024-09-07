@@ -1,3 +1,9 @@
 streamlit 
 pillow 
 pyzbar
+
+yfinance 
+streamlit 
+pandas 
+plotly
+matplotlib
